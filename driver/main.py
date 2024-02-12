@@ -5,15 +5,17 @@ from dasbus.loop import EventLoop
 from usb_dbus import UsbDriver
 from usb_driver import init, find_device, usb_reader
 import constansts as cons
+# import os
+
+# os.environ['DBUS_SESSION_BUS_ADDRESS'] = '/usr/bin/dbus-daemon'
+# os.environ['DISPLAY'] = ':0'
 
 try:
     dev = find_device()
     init(dev)
 except:
     print("Error connecting to USB")
-
-# usb_reader_thread = threading.Thread(target=usb_reader, args=(dev,), daemon=True)
-# usb_reader_thread.start()
+    
 
 print(UsbDriver.__dbus_xml__)
 
