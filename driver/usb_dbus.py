@@ -1,6 +1,6 @@
 # usb_dbus.py
 from dasbus.server.interface import dbus_interface
-from dasbus.typing import Str
+from dasbus.typing import Str, List, UInt16
 import constansts as cons
 import usb_driver
 
@@ -30,19 +30,15 @@ class UsbDriver():
             print("Device not found")
             return "Device not found"
 
-    def GetData(self) -> Str:
+    def GetData(self) -> List[int]:
         try:
             ret = usb_driver.dev.read(cons.READ_PORT, cons.PACKAGE_SIZE, cons.USB_TIMEOUT_MILLIS)
-            print(str(ret, 'cp1251'))
-            return str(ret, 'cp1251')
-            # print(usb_driver.ret_lock.locked())
-            # with usb_driver.ret_lock:
-            #     # print(usb_driver.ret_lock.locked())
-            #     if usb_driver.ret is not None:
-            #         print(str(ret, 'cp1251'))
-            #         return str(ret, 'cp1251')
-            #     else:
-            #         return f"No data available {usb_driver.ret}"
+            # print(str(ret, 'cp1251'))
+            ret_list = list(ret)
+            print(ret_list)
+            return ret_list
+            # print(str(ret))
+            # return str(ret)
         except Exception as e:
             print(e)
             return "Error reading from USB"
