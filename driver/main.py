@@ -5,10 +5,6 @@ from dasbus.loop import EventLoop
 from usb_dbus import UsbDriver
 from usb_driver import init, find_device, usb_reader
 import constansts as cons
-# import os
-
-# os.environ['DBUS_SESSION_BUS_ADDRESS'] = '/usr/bin/dbus-daemon'
-# os.environ['DISPLAY'] = ':0'
 
 try:
     dev = find_device()

@@ -8,6 +8,8 @@ dtr = False
 rts = False
 dev = None
 ret = None
+ep_read = None
+ep_write = None
 ret_lock = threading.Lock()
 
 def usb_reader(dev):
@@ -33,38 +35,101 @@ def find_device():
     return dev
 
 def init(dev):
-    global ret
+    global ret, ep_read, ep_write
     print("init")
+    
+    try:
+        if dev.is_kernel_driver_active(0):
+            dev.detach_kernel_driver(0)
+    except Exception as e:
+        print(e)
+        print("Error detaching kernel driver")
+        return e
+    
+    try:
+        dev.reset()
+    except Exception as e:
+        print(e)
+        print("Error resetting device")
+        # return e
+
+    try:
+        dev.set_configuration()
+    except Exception as e:
+        print(e)
+        print("Error setting configuration")
+        return e
+    
+    try:
+        cfg = dev.get_active_configuration()
+        print(cfg)
+        intf = cfg[(0, 0)]
+        for cf in cfg:
+            print(cf.bInterfaceNumber)
+            if cf.bInterfaceNumber != 0:
+                print("\n\nintf")
+                print(cf)
+                intf = cf
+                break
+    except Exception as e:
+        print(e)
+        print("Error getting configuration")
+        return e
+    
+    try:
+        ep_read = usb.util.find_descriptor(
+            intf,
+            custom_match= \
+                lambda e: \
+                    usb.util.endpoint_direction(e.bEndpointAddress) == \
+                    usb.util.ENDPOINT_IN)
+    except Exception as e:
+        print(e)
+        print("Error finding endpoint")
+        return e
+        
+    try:
+        ep_write = usb.util.find_descriptor(
+            intf,
+            custom_match= \
+                lambda e: \
+                    usb.util.endpoint_direction(e.bEndpointAddress) == \
+                    usb.util.ENDPOINT_OUT)
+    except Exception as e:
+        print(e)
+        print("Error finding endpoint")
+        return e
+    
 
     # checkState("init #1", 0x5f, 0, new int[]{-1 /* 0x27, 0x30 */, 0x00});
-    ret = control_read(dev, cons.VENDOR_VERSION, 0, 0, 0x02)
-    print("VENDOR_VERSION ret=", ret, to_hex(ret))
+    # ret = control_read(dev, cons.VENDOR_VERSION, 0, 0, 0x02)
+    # print("VENDOR_VERSION ret=", ret, to_hex(ret))
 
     # if (controlOut(0xa1, 0, 0) < 0) {
-    ret = control_write(dev, cons.VENDOR_SERIAL_INIT, 0, 0, 0x00)
-    print("SERIAL_INIT ret=", ret, to_hex(ret))
+    # ret = control_write(dev, cons.VENDOR_SERIAL_INIT, 0, 0, 0x00)
+    # print("SERIAL_INIT ret=", ret, to_hex(ret))
 
-    set_baud_rate(dev, cons.DEFAULT_BAUD_RATE)
+    # set_baud_rate(dev, cons.DEFAULT_BAUD_RATE)
 
     # checkState("init #4", 0x95, 0x2518, new int[]{-1 /* 0x56, c3*/, 0x00});
-    ret = control_read(dev, cons.VENDOR_READ, 0x2518, 0, 0x00)
-    print("VENDOR_WRITE.1 ret=", ret, to_hex(ret))
+    # ret = control_read(dev, cons.VENDOR_READ, 0x2518, 0, 0x00)
+    # print("VENDOR_WRITE.1 ret=", ret, to_hex(ret))
 
-    # controlOut(0x9a, 0x2518, LCR_ENABLE_RX | LCR_ENABLE_TX | LCR_CS8)
-    ret = control_write(dev, cons.VENDOR_WRITE, 0x2518, cons.LCR_ENABLE_RX | cons.LCR_ENABLE_TX | cons.LCR_CS8, 0x00)
-    print("VENDOR_WRITE.3 ret=", ret, to_hex(ret))
+    # # controlOut(0x9a, 0x2518, LCR_ENABLE_RX | LCR_ENABLE_TX | LCR_CS8)
+    # ret = control_write(dev, cons.VENDOR_WRITE, 0x2518, cons.LCR_ENABLE_RX | cons.LCR_ENABLE_TX | cons.LCR_CS8, 0x00)
+    # print("VENDOR_WRITE.3 ret=", ret, to_hex(ret))
 
-    # checkState("init #6", 0x95, 0x0706, new int[]{-1/*0xf?*/, -1/*0xec,0xee*/});
-    ret = control_read(dev, cons.VENDOR_READ, 0x0706, 0, 0x00)
-    print("VENDOR_WRITE.1 ret=", ret, to_hex(ret))
+    # # checkState("init #6", 0x95, 0x0706, new int[]{-1/*0xf?*/, -1/*0xec,0xee*/});
+    # ret = control_read(dev, cons.VENDOR_READ, 0x0706, 0, 0x00)
+    # print("VENDOR_WRITE.1 ret=", ret, to_hex(ret))
 
-    # controlOut(0xa1, 0x501f, 0xd90a)
-    ret = control_write(dev, cons.VENDOR_SERIAL_INIT, 0x501f, 0xd90a, 0x00)
-    print("VENDOR_SERIAL_INIT.3 ret=", ret, to_hex(ret))
+    # # controlOut(0xa1, 0x501f, 0xd90a)
+    # ret = control_write(dev, cons.VENDOR_SERIAL_INIT, 0x501f, 0xd90a, 0x00)
+    # print("VENDOR_SERIAL_INIT.3 ret=", ret, to_hex(ret))
 
-    set_baud_rate(dev, cons.DEFAULT_BAUD_RATE)
+    # set_baud_rate(dev, cons.DEFAULT_BAUD_RATE)
 
-    set_control_lines(dev)
+    # set_control_lines(dev)
 
 
 def set_control_lines(dev):
@@ -127,7 +192,7 @@ def control_read(dev, req, index, value, len):
     ret = dev.ctrl_transfer(cons.VENDOR_READ_TYPE, req, index, value, len)
     return ret 
 
-def send_hello(dev, msg):
+def send_data(dev, msg):
     global ret
     print("Send message ", msg)
     ret = dev.write(cons.WRITE_PORT, msg, cons.USB_TIMEOUT_MILLIS)

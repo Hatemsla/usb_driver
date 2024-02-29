@@ -3,9 +3,9 @@
 DOMEN = "org.usb.UsbDriver"
 PATH = "/org/usb/UsbDriver"
 
-READ_PORT = 0x82
-WRITE_PORT = 0x02
-PACKAGE_SIZE = 280
+READ_PORT = 0x81 # 0x81
+WRITE_PORT = 0x01 # 0x01
+PACKAGE_SIZE = 1024 # 280
 
 USB_TIMEOUT_MILLIS = 1000
 
