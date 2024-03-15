@@ -3,6 +3,7 @@ from dasbus.server.interface import dbus_interface
 from dasbus.typing import Str, List
 import constansts as cons
 import usb_driver
+import traceback 
 
 @dbus_interface(cons.DOMEN)
 class UsbDriver():
@@ -38,8 +39,12 @@ class UsbDriver():
 
     def GetData(self) -> List[int]:
         try:
+            # print(usb_driver.ep_read)
+            
             while True:
                 ret = list(usb_driver.ep_read.read(cons.PACKAGE_SIZE))
+                
+                print(ret)
                 
                 if ret[0] != 253 and self.remain_data == []:
                     continue
@@ -81,12 +86,13 @@ class UsbDriver():
                         return self.result_data
         except Exception as e:
             print(e)
+            traceback.print_exc()
             return []
         
     
     def SendData(self, msg: List[int]) -> Str:
         try:
-            ret = usb_driver.ep_write.write(msg, cons.USB_TIMEOUT_MILLIS)
+            # ret = usb_driver.ep_write.write(msg, cons.USB_TIMEOUT_MILLIS)
             # print(ret)
             return 'Successfully sent data'
         except Exception as e:
