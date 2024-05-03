@@ -92,7 +92,7 @@ class UsbDriver():
     
     def SendData(self, msg: List[int]) -> Str:
         try:
-            # ret = usb_driver.ep_write.write(msg, cons.USB_TIMEOUT_MILLIS)
+            ret = usb_driver.ep_write.write(msg, cons.USB_TIMEOUT_MILLIS)
             # print(ret)
             return 'Successfully sent data'
         except Exception as e:

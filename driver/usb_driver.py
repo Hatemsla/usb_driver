@@ -41,6 +41,9 @@ def find_device():
             dev = d
         elif d.idVendor == 0x1a86 and d.idProduct == 0x7523:
             dev = d
+        elif d.idVendor == 0x0403 and d.idProduct == 0x6015:
+            dev = d
+        
         print(d)
 
     print('target dev', dev, sep='\n')
@@ -57,29 +60,29 @@ def init(dev):
     except Exception as e:
         print(e)
         print("Error detaching kernel driver")
-        return e
+        # return e
     
     try:
         dev.reset()
     except Exception as e:
         print(e)
         print("Error resetting device")
-        return e
+        # return e
 
-    # try:
-    #     dev.set_configuration()
-    # except Exception as e:
-    #     print(e)
-    #     print("Error setting configuration")
-    #     return e
+    try:
+        dev.set_configuration()
+    except Exception as e:
+        print(e)
+        print("Error setting configuration")
+        # return e
     
     try:
         cfg = dev.get_active_configuration()
         print(cfg)
         intf = cfg[(0, 0)]
         for cf in cfg:
-            print(cf.bInterfaceNumber)
-            if cf.bInterfaceNumber != 0 and cf.bAlternateSetting == 0xb:
+            print("interface: ", cf.bInterfaceNumber)
+            if cf.bInterfaceNumber != 0 and cf.bInterfaceClass == 0xa:
                 print("\n\nintf")
                 print(cf)
                 intf = cf
@@ -94,8 +97,8 @@ def init(dev):
             intf,
             custom_match= \
                 lambda e: \
-                    usb.util.endpoint_direction(e.bEndpointAddress) == \
-                    usb.util.ENDPOINT_IN)
+                    usb.util.endpoint_direction(e.bEndpointAddress) == usb.util.ENDPOINT_IN)
+        print("ep_read", ep_read)
     except Exception as e:
         print(e)
         print("Error finding IN endpoint")
@@ -106,8 +109,8 @@ def init(dev):
             intf,
             custom_match= \
                 lambda e: \
-                    usb.util.endpoint_direction(e.bEndpointAddress) == \
-                    usb.util.ENDPOINT_OUT)
+                    usb.util.endpoint_direction(e.bEndpointAddress) == usb.util.ENDPOINT_OUT)
+        print("ep_write", ep_write)
     except Exception as e:
         print(e)
         print("Error finding OUT endpoint")
