@@ -43,6 +43,8 @@ def find_device():
             dev = d
         elif d.idVendor == 0x0403 and d.idProduct == 0x6015:
             dev = d
+        elif d.idVendor == 0x3162 and d.idProduct == 0x0053:
+            dev = d
         
         print(d)
 

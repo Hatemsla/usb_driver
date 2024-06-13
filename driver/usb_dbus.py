@@ -44,7 +44,7 @@ class UsbDriver():
             while True:
                 ret = list(usb_driver.ep_read.read(cons.PACKAGE_SIZE))
                 
-                print(ret)
+                # print(ret)
                 
                 if ret[0] != 253 and self.remain_data == []:
                     continue
@@ -55,7 +55,7 @@ class UsbDriver():
                     self.data = self.remain_data + self.data
                     self.remain_data = []
                 
-                print("No valid packet: ", self.data)
+                # print("No valid packet: ", self.data)
                 
                 self.result_data = []
                 
@@ -66,23 +66,25 @@ class UsbDriver():
                         if len(self.data) == payload_length + 12:
                             self.result_data += self.data
                             self.data = []
-                            print("Result data: ", self.result_data)
+                            if(payload_length == 4):
+                                print("Mis req int: ", self.result_data)
+                            # print("Result data: ", self.result_data)
                             return self.result_data
                         elif len(self.data) > payload_length + 12:
                             self.result_data += self.data[:payload_length + 12]
-                            print("Data: ", self.data)
+                            # print("Data: ", self.data)
                             self.data = self.data[payload_length + 12:]
                         else:
                             self.remain_data += self.data
                             self.data = []
-                            print("Remain data: ", self.remain_data)
-                            print("Result data: ", self.result_data)
+                            # print("Remain data: ", self.remain_data)
+                            # print("Result data: ", self.result_data)
                             return self.result_data
                     else:
                         self.remain_data += self.data
                         self.data = []
-                        print("Remain data: ", self.remain_data)
-                        print("Result data: ", self.result_data)
+                        # print("Remain data: ", self.remain_data)
+                        # print("Result data: ", self.result_data)
                         return self.result_data
         except Exception as e:
             print(e)
